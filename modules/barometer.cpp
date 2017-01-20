@@ -1,8 +1,14 @@
 #include "barometer.h"
 
-float prevSmooth = 0;
+Barometer::Barometer(){
+	baseline = 0.0; // baseline pressure
 
-void initBarometer(){
+	baroAlt = 0.0;
+	// for exponential pressure smoothing
+	alpha = 0.3;
+}
+
+void Barometer::init(){
   //start barometer
   if (!pressure.begin()){
 //    logData("BMP180 fail (wiring?)");
@@ -14,7 +20,7 @@ void initBarometer(){
 
 }
 
-double getPressure()
+double Barometer::getPressure()
 {
   char status;
   double T,P,p0,a;
@@ -70,18 +76,29 @@ double getPressure()
 float last_baro_alt = 0;
 unsigned long lastBaroVSpdTake;
 
-float calcBaroVertSpd(float alt){
+float Barometer::calcBaroVertSpd(){
   unsigned long currTime = micros();
-  float result = 1000000*(alt - last_baro_alt)/(currTime - lastBaroVSpdTake);
+  float result = 1000000*(baroAlt - last_baro_alt)/(currTime - lastBaroVSpdTake);
   lastBaroVSpdTake = currTime;
-  last_baro_alt = alt;
+  last_baro_alt = baroAlt;
   return result;
 }
 
-
-float smoothAltitudeExp(float a){
+float Barometer::smoothAltitudeExp(float a){
   // exponential smoothing:
   float as = a*alpha + (1-alpha)*prevSmooth;
   prevSmooth = as;
   return as;
+}
+
+void Barometer::readAltitude(){
+	// Get a new pressure reading:
+	 double P = Barometer::getPressure();
+	// Show the relative altitude difference between
+	// the new reading and the baseline reading:
+	 baroAlt = pressure.altitude(P,baseline);
+}
+
+float Barometer::getSmoothedAltitude(){
+	return smoothAltitudeExp(baroAlt);
 }

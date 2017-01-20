@@ -4,20 +4,36 @@
 // sensor library
 #include "../lib/BMP180/src/SFE_BMP180.h"
 
+class Barometer{
+private:
+	SFE_BMP180 pressure;
 
-SFE_BMP180 pressure;
+	double baseline; // baseline pressure
 
-double baseline; // baseline pressure
-// for exponential pressure smoothing
-float alpha = 0.3;
+	float baroAlt;
+	// for exponential pressure smoothing
+	float alpha;
 
-void initBarometer();
+	float prevSmooth = 0;
 
-double getPressure();
+public:
+	Barometer();
 
-float calcBaroVertSpd(float alt);
+	void init();
 
-// implements exponential smoothing for the altitude
-float smoothAltitudeExp(float a);
+	double getPressure();
+	double getAltitude();
+	float getSmoothedAltitude();
+
+	float calcBaroVertSpd();
+
+	// implements exponential smoothing for the altitude
+	float smoothAltitudeExp(float a);
+
+	void readAltitude();
+};
+
+
+
 
 #endif
